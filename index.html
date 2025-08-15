@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>С Днем Рождения, тетя Ксюша!</title>
+  <style>
+    :root {
+      --pink-1: #ffe6f0;
+      --pink-2: #ffb3d9;
+      --pink-3: #ff80bf;
+      --accent: #d10047;
+      --shadow: rgba(0, 0, 0, 0.25);
+      --confetti: #ff004c,#ff7a00,#ffd400,#82ff00,#00e1ff,#705cff,#ff53d6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% -20%, var(--pink-1), var(--pink-2), var(--pink-3));
+      font-family: "Comic Sans MS", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* ====== ТОРТ ====== */
+    #cake-container {
+      position: relative;
+      width: 320px;
+      height: 420px;
+      margin-top: 40px;
+      z-index: 10;
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,.25));
+    }
+
+    .cake-layer {
+      position: absolute;
+      left: 0; right: 0; margin: 0 auto;
+      border-radius: 12px;
+      transform: translateY(-1200px);
+      opacity: 0;
+      box-shadow: 0 8px 20px rgba(0,0,0,.25) inset, 0 6px 14px rgba(0,0,0,.15);
+      background-size: 12px 12px, 100% 100%;
+    }
+
+    /* Иней/крем сверху каждой секции */
+    .cake-layer::before {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; top: -12px; height: 18px;
+      border-radius: 12px 12px 0 0;
+      background: linear-gradient(#fff, #ffe6f2);
+      box-shadow: 0 2px 0 #ffd1e1 inset;
+    }
+
+    /* Посыпка */
+    .cake-layer::after {
+      content: "";
+      position: absolute; left: 10px; right: 10px; top: 10px; height: 8px;
+      background-image: radial-gradient(circle at 4px 4px, #ff8ab8 2px, transparent 2.1px),
+                        radial-gradient(circle at 16px 6px, #ffd44d 2px, transparent 2.1px),
+                        radial-gradient(circle at 28px 3px, #7fe07f 2px, transparent 2.1px),
+                        radial-gradient(circle at 40px 7px, #7fb6ff 2px, transparent 2.1px);
+      background-size: 50px 12px;
+      background-repeat: repeat-x;
+      opacity: .8;
+    }
+
+    #layer1 { width: 280px; height: 86px; bottom: 0; background: linear-gradient(#f9d5e5,#e3b7d2); border-top: 12px solid #ffb6c1; animation: drop .9s .4s forwards, wiggle .28s 1.3s; }
+    #layer2 { width: 240px; height: 74px; bottom: 90px; background: linear-gradient(#e3b7d2,#c895b5); border-top: 12px solid #ff69b4; animation: drop .9s .8s forwards, wiggle .28s 1.7s; }
+    #layer3 { width: 205px; height: 64px; bottom: 158px; background: linear-gradient(#c895b5,#a37396); border-top: 12px solid #db7093; animation: drop .9s 1.2s forwards, wiggle .28s 2.1s; }
+    #layer4 { width: 172px; height: 56px; bottom: 218px; background: linear-gradient(#a37396,#7d4f7a); border-top: 12px solid #c71585; animation: drop .9s 1.6s forwards, wiggle .28s 2.5s; }
+
+    /* Свеча */
+    #candle {
+      position: absolute; bottom: 276px; left: 50%; transform: translate(-50%, -1200px);
+      width: 16px; height: 64px; border-radius: 3px;
+      background: repeating-linear-gradient(45deg, #ffd700, #ffd700 8px, #ffcc00 8px, #ffcc00 16px);
+      animation: drop .9s 2.0s forwards;
+      box-shadow: 0 0 0 2px rgba(255,255,255,.5) inset;
+    }
+
+    #flame {
+      position: absolute; bottom: 343px; left: 50%; transform: translate(-50%, 0);
+      width: 22px; height: 32px; border-radius: 50% 50% 45% 45%;
+      background: radial-gradient(circle at 50% 60%, #ffff80 0%, #ffb300 60%, #ff5100 100%);
+      opacity: 0; animation: appear .5s 3s forwards, flicker 1.1s infinite 3.5s;
+      filter: drop-shadow(0 0 10px #ffb300) drop-shadow(0 0 25px #ffd265);
+      cursor: pointer;
+    }
+
+    /* Подсказка кликнуть */
+    #hint { position: absolute; bottom: 310px; left: 50%; transform: translateX(-50%); font-size: .95rem; color: #7a2942; opacity: 0; animation: appear .6s 3.2s forwards, pulse 1.6s 3.8s infinite; }
+
+    /* Надпись */
+    #birthday-text {
+      position: absolute; top: 10%; left: 50%; transform: translateX(-50%) scale(.75);
+      font-size: clamp(28px, 6vw, 52px); font-weight: 800; letter-spacing: .5px;
+      color: var(--accent);
+      text-shadow: 0 2px 0 #fff, 2px 4px 10px rgba(0,0,0,.25);
+      opacity: 0; filter: blur(6px);
+      transition: transform 900ms cubic-bezier(.2,.8,.2,1), opacity 900ms, filter 900ms;
+      text-align: center; padding: 0 .5rem;
+      z-index: 30;
+    }
+    #birthday-text.show { opacity: 1; filter: blur(0); transform: translateX(-50%) scale(1); }
+
+    /* Кнопка пожеланий */
+    #wishes-button {
+      position: absolute; bottom: 22px; left: 50%; transform: translate(-50%, 20px);
+      padding: 14px 26px; border: 0; border-radius: 999px; cursor: pointer;
+      background: linear-gradient(180deg,#ff69b4,#db7093);
+      color: #fff; font-size: 1.05rem; font-weight: 700;
+      box-shadow: 0 10px 20px rgba(219,112,147,.35), 0 2px 0 rgba(255,255,255,.5) inset;
+      opacity: 0; transition: transform .35s, box-shadow .35s, opacity .6s;
+      z-index: 40;
+    }
+    #wishes-button.show { opacity: 1; transform: translate(-50%, 0); }
+    #wishes-button:hover { transform: translate(-50%, -4px); box-shadow: 0 16px 28px rgba(219,112,147,.45), 0 2px 0 rgba(255,255,255,.5) inset; }
+
+    /* Модал пожеланий */
+    #wishes-container {
+      position: fixed; inset: 0; display: grid; place-items: center;
+      background: radial-gradient(circle at 50% 30%, rgba(0,0,0,.55), rgba(0,0,0,.85));
+      backdrop-filter: blur(4px);
+      z-index: 100; opacity: 0; pointer-events: none; transition: opacity .45s ease;
+    }
+    #wishes-container.open { opacity: 1; pointer-events: auto; }
+
+    .wishes-box { position: relative; width: min(780px, 92vw); padding: 22px 18px 28px; border-radius: 20px; background: rgba(255,255,255,.1); box-shadow: 0 10px 30px rgba(0,0,0,.35) inset, 0 10px 40px rgba(0,0,0,.35); }
+    .wish { color: #fff; font-size: clamp(22px, 4vw, 32px); text-align: center; margin: 14px 8px; opacity: 0; transform: scale(.8); text-shadow: 0 2px 8px rgba(0,0,0,.4); }
+
+    #close-wishes { position: absolute; top: 14px; right: 14px; width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer; background:#ff69b4; color: #fff; font-size: 1.2rem; box-shadow: 0 6px 16px rgba(0,0,0,.25); }
+
+    /* Конфетти */
+    .confetti { position: absolute; will-change: transform, opacity; }
+    .confetti.circle { border-radius: 50%; }
+    .confetti.square { border-radius: 4px; }
+    .confetti.strip { width: 6px !important; height: 16px !important; border-radius: 3px; }
+
+    @keyframes confettiFall {
+      0%   { transform: translateY(-120px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* Шарики */
+    .balloon { position: absolute; width: 64px; height: 84px; border-radius: 50%;
+               animation: floatUp linear forwards, sway 3s ease-in-out infinite; filter: drop-shadow(0 6px 12px rgba(0,0,0,.25)); }
+    .balloon::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.9), transparent 35%); }
+    .balloon-string { position: absolute; width: 2px; height: 100px; background: #333; top: 80px; left: 31px; opacity: .75; }
+
+    @keyframes floatUp { to { transform: translateY(-115vh) } }
+    @keyframes sway { 0%, 100% { transform: translateX(-10px) } 50% { transform: translateX(10px) } }
+
+    /* Салют */
+    .firework-burst { position: absolute; width: 6px; height: 6px; border-radius: 50%; opacity: 0; }
+    .spark { position: absolute; width: 5px; height: 5px; border-radius: 50%; opacity: 1; filter: drop-shadow(0 0 4px currentColor); transform: translate(-50%, -50%); animation: shoot 900ms ease-out forwards; }
+    @keyframes shoot { to { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
+
+    /* Переходы/ключевые */
+    @keyframes drop { to { transform: translateY(0); opacity: 1; } }
+    @keyframes wiggle { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(2deg); } 75% { transform: rotate(-2deg); } }
+    @keyframes appear { to { opacity: 1; } }
+    @keyframes flicker { 0%,100% { transform: scale(1) translateY(0) } 40% { transform: scale(1.06,.92) translateY(-1px); } 55% { transform: scale(.96,1.04) translateY(1px); } }
+    @keyframes pulse { 0%,100% { transform: translateX(-50%) scale(1); opacity: .9 } 50% { transform: translateX(-50%) scale(1.06); opacity: 1 } }
+  </style>
+</head>
+<body>
+  <div id="cake-container">
+    <div class="cake-layer" id="layer1"></div>
+    <div class="cake-layer" id="layer2"></div>
+    <div class="cake-layer" id="layer3"></div>
+    <div class="cake-layer" id="layer4"></div>
+    <div id="candle" aria-hidden="true"></div>
+    <div id="flame" title="Задуть свечу (клик)"></div>
+    <div id="hint">Нажми на огонёк 🎂</div>
+  </div>
+
+  <div id="birthday-text">С Днем Рождения, тетя Ксюша!</div>
+
+  <button id="wishes-button" type="button" aria-haspopup="dialog" aria-controls="wishes-container">Пожелания</button>
+
+  <div id="wishes-container" role="dialog" aria-modal="true" aria-label="Пожелания">
+    <div class="wishes-box">
+      <button id="close-wishes" type="button" aria-label="Закрыть">×</button>
+      <div class="wish">Счастья!</div>
+      <div class="wish">Здоровья!</div>
+      <div class="wish">Любви!</div>
+      <div class="wish">Удачи!</div>
+      <div class="wish">Процветания!</div>
+      <div class="wish">Исполнения желаний!</div>
+    </div>
+  </div>
+
+  <audio id="birthday-song" src="happy.mp3" preload="auto"></audio>
+
+  <script>
+    const flame = document.getElementById('flame');
+    const birthdayText = document.getElementById('birthday-text');
+    const wishesBtn = document.getElementById('wishes-button');
+    const wishesModal = document.getElementById('wishes-container');
+    const closeWishes = document.getElementById('close-wishes');
+    const song = document.getElementById('birthday-song');
+
+    let celebrationRunning = false;
+    let timers = [];
+    let intervals = [];
+
+    function clearTimers() { timers.forEach(t => clearTimeout(t)); timers = []; }
+    function clearIntervals() { intervals.forEach(i => clearInterval(i)); intervals = []; }
+
+    function blowOutCandle() {
+      if (celebrationRunning) return;
+      celebrationRunning = true;
+
+      // Погасить пламя
+      flame.style.animation = 'none';
+      flame.style.opacity = '0';
+      document.getElementById('hint').style.display = 'none';
+
+      // Дым (несколько клубов)
+      for (let i = 0; i < 4; i++) {
+        timers.push(setTimeout(()=> makeSmoke(330 + i*4, 0.65 - i*0.08), i*120));
+      }
+
+      // Старт праздника
+      timers.push(setTimeout(startCelebration, 300));
+    }
+
+    function makeSmoke(startBottom = 330, startOpacity = .65) {
+      const puff = document.createElement('div');
+      Object.assign(puff.style, {
+        position: 'absolute', width: '24px', height: '24px',
+        background: 'radial-gradient(circle, rgba(220,220,220,.8), rgba(200,200,200,.45))',
+        borderRadius: '50%', bottom: startBottom+'px', left: '147px', zIndex: 15,
+        filter: 'blur(2px)', opacity: startOpacity
+      });
+      document.getElementById('cake-container').appendChild(puff);
+      let y = startBottom, size = 24, op = startOpacity, drift = (Math.random()*2-1)*1.2;
+      const id = setInterval(()=>{
+        y += 2.6; size += 2.2; op -= 0.03; drift += (Math.random()-.5)*0.2;
+        puff.style.bottom = y+'px';
+        puff.style.width = puff.style.height = size+'px';
+        puff.style.left = (147 + drift)+'px';
+        puff.style.opacity = op;
+        if (op <= 0) { clearInterval(id); puff.remove(); }
+      }, 50);
+      intervals.push(id);
+    }
+
+    function startCelebration() {
+      // Музыка (может потребовать взаимодействия пользователя — клик по пламени его даёт)
+      try { song.currentTime = 0; song.play(); } catch {}
+
+      // Показать надпись строго ПОСЛЕ задувания
+      birthdayText.classList.add('show');
+
+      // Показать кнопку пожеланий
+      timers.push(setTimeout(()=> wishesBtn.classList.add('show'), 600));
+
+      // Эффекты
+      runConfetti(5000);   // 5 секунд
+      runBalloons(8000);   // 8 секунд
+      runFireworks(6000);  // 6 секунд
+    }
+
+    /* ===== Конфетти ===== */
+    function runConfetti(duration = 5000) {
+      const colors = getColors();
+      const start = performance.now();
+      const inter = setInterval(()=>{
+        for (let i = 0; i < 16; i++) {
+          makeConfetto(colors);
+        }
+        if (performance.now() - start > duration) { clearInterval(inter); }
+      }, 160);
+      intervals.push(inter);
+    }
+
+    function makeConfetto(colors) {
+      const el = document.createElement('div');
+      const type = ['circle','square','strip'][Math.floor(Math.random()*3)];
+      el.className = `confetti ${type}`;
+      const size = Math.random()*8 + 6;
+      el.style.width = size + 'px';
+      el.style.height = size + 'px';
+      el.style.left = Math.random()*window.innerWidth + 'px';
+      el.style.top = '-20px';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      el.style.transform = `rotate(${Math.random()*360}deg)`;
+      el.style.animation = `confettiFall ${Math.random()*3+2}s linear forwards`;
+      document.body.appendChild(el);
+      timers.push(setTimeout(()=> el.remove(), 5200));
+    }
+
+    /* ===== Шарики ===== */
+    function runBalloons(duration = 8000) {
+      const colors = getColors();
+      const start = performance.now();
+      const inter = setInterval(()=>{
+        makeBalloon(colors);
+        if (performance.now() - start > duration) { clearInterval(inter); }
+      }, 220);
+      intervals.push(inter);
+    }
+
+    function makeBalloon(colors) {
+      const b = document.createElement('div');
+      b.className = 'balloon';
+      const color = colors[Math.floor(Math.random()*colors.length)];
+      b.style.background = `radial-gradient(circle at 30% 30%, #ffffff, ${color})`;
+      b.style.left = Math.random()*window.innerWidth + 'px';
+      b.style.bottom = '-110px';
+      b.style.animationDuration = (Math.random()*6+9) + 's, 3s';
+      const s = document.createElement('div'); s.className = 'balloon-string'; b.appendChild(s);
+      document.body.appendChild(b);
+      timers.push(setTimeout(()=> b.remove(), 16000));
+    }
+
+    /* ===== Салют ===== */
+    function runFireworks(duration = 6000) {
+      const colors = getColors();
+      const start = performance.now();
+      const inter = setInterval(()=>{
+        const x = Math.random()*window.innerWidth;
+        const y = Math.random()*window.innerHeight*0.55 + 50; // верхняя половина
+        makeBurst(x, y, colors);
+        if (performance.now() - start > duration) { clearInterval(inter); }
+      }, 420);
+      intervals.push(inter);
+    }
+
+    function makeBurst(x, y, colors) {
+      // вспышка-ореол
+      const halo = document.createElement('div');
+      halo.className = 'firework-burst';
+      halo.style.left = x + 'px';
+      halo.style.top = y + 'px';
+      halo.style.background = '#fff';
+      halo.style.opacity = '1';
+      halo.style.filter = 'blur(2px) drop-shadow(0 0 20px rgba(255,255,255,.9))';
+      document.body.appendChild(halo);
+      timers.push(setTimeout(()=> halo.remove(), 220));
+
+      // искры
+      const count = 24;
+      for (let i=0; i<count; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'spark';
+        const color = colors[Math.floor(Math.random()*colors.length)];
+        spark.style.color = color;
+        spark.style.background = color;
+        spark.style.left = x + 'px';
+        spark.style.top = y + 'px';
+        const angle = (Math.PI*2) * (i / count) + (Math.random()*0.2-0.1);
+        const dist = 70 + Math.random()*100;
+        const dx = Math.cos(angle) * dist;
+        const dy = Math.sin(angle) * dist;
+        spark.style.setProperty('--dx', dx + 'px');
+        spark.style.setProperty('--dy', dy + 'px');
+        document.body.appendChild(spark);
+        timers.push(setTimeout(()=> spark.remove(), 1000));
+      }
+    }
+
+    function getColors() {
+      return getComputedStyle(document.documentElement).getPropertyValue('--confetti').split(',');
+    }
+
+    // Пожелания модал
+    wishesBtn.addEventListener('click', () => {
+      wishesModal.classList.add('open');
+      revealWishes();
+    });
+    closeWishes.addEventListener('click', closeModal);
+    wishesModal.addEventListener('click', (e)=>{ if (e.target === wishesModal) closeModal(); });
+
+    function revealWishes() {
+      const items = wishesModal.querySelectorAll('.wish');
+      items.forEach((el, idx) => {
+        el.style.transition = 'opacity .5s ease, transform .5s ease';
+        timers.push(setTimeout(()=>{
+          el.style.opacity = '1';
+          el.style.transform = 'scale(1)';
+        }, idx * 280));
+      });
+    }
+
+    function closeModal() {
+      wishesModal.classList.remove('open');
+      wishesModal.querySelectorAll('.wish').forEach(el => { el.style.opacity = 0; el.style.transform = 'scale(.8)'; });
+    }
+
+    // Слушатели
+    document.addEventListener('DOMContentLoaded', () => {
+      flame.addEventListener('click', blowOutCandle);
+      // На мобильных — чуть увеличить цель клика
+      document.getElementById('candle').addEventListener('click', blowOutCandle);
+    });
+
+    // Очистка по уходу со страницы
+    window.addEventListener('beforeunload', ()=>{ clearTimers(); clearIntervals(); });
+  </script>
+</body>
+</html>
